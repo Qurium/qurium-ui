@@ -1,5 +1,29 @@
 @import 'tailwindcss';
 
+@theme {
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Qurium product-shell dark palette (fixed, not theme-togglable) */
+  --color-canvas: #0a0e14;
+  --color-canvas-rail: #060a10;
+  --color-surface: #0d1219;
+  --color-surface-2: #111820;
+  --color-surface-3: #0f1923;
+  --color-edge: #1a2030;
+  --color-edge-2: #1a2535;
+  --color-ink: #e2e8f0;
+  --color-ink-dim: #c5cdd8;
+  --color-ink-faint: #8b95a5;
+  --color-ink-muted: #4a5568;
+  --color-ink-ghost: #3a4452;
+  --color-accent: #00d4aa;
+  --color-accent-2: #00b894;
+  --color-blue: #0090ff;
+  --color-amber: #e8a838;
+  --color-violet: #c084fc;
+}
+
 :root {
   color-scheme: light;
 }
