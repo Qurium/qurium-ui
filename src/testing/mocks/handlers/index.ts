@@ -1,3 +1,11 @@
-import { authHandlers } from './auth'
+import { connectionsHandlers } from './connections'
+import { historyHandlers } from './history'
+import { queryHandlers } from './query'
+import { schemaHandlers } from './schema'
 
-export const handlers = [...authHandlers]
+export const handlers = [
+  ...schemaHandlers,
+  ...connectionsHandlers,
+  ...queryHandlers,
+  ...historyHandlers,
+]

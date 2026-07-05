@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, redirect, RouterProvider } from 'react-router-dom'
 
 import { paths } from '@/config/paths'
 
@@ -10,23 +10,35 @@ const createAppRouter = () =>
   createBrowserRouter([
     {
       path: paths.home.path,
-      lazy: () => import('./routes/landing').then(convert),
-    },
-    {
-      path: paths.auth.login.path,
-      lazy: () => import('./routes/auth/login').then(convert),
-    },
-    {
-      path: paths.auth.register.path,
-      lazy: () => import('./routes/auth/register').then(convert),
+      loader: () => redirect(paths.app.schema.path),
     },
     {
       path: paths.app.root.path,
       lazy: () => import('./routes/app/root').then(convert),
       children: [
         {
-          path: paths.app.dashboard.path,
-          lazy: () => import('./routes/app/dashboard').then(convert),
+          index: true,
+          loader: () => redirect(paths.app.schema.path),
+        },
+        {
+          path: paths.app.schema.path,
+          lazy: () => import('./routes/app/schema').then(convert),
+        },
+        {
+          path: paths.app.query.path,
+          lazy: () => import('./routes/app/query').then(convert),
+        },
+        {
+          path: paths.app.connections.path,
+          lazy: () => import('./routes/app/connections').then(convert),
+        },
+        {
+          path: paths.app.newConnection.path,
+          lazy: () => import('./routes/app/new-connection').then(convert),
+        },
+        {
+          path: paths.app.history.path,
+          lazy: () => import('./routes/app/history').then(convert),
         },
       ],
     },
