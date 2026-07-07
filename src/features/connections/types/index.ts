@@ -5,6 +5,9 @@ export type Connection = {
   host: string
   port: number
   databaseName: string
+  username: string
+  tableCount: number
+  isConnected: boolean
   createdAt: string
   updatedAt: string
 }

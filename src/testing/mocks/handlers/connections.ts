@@ -49,6 +49,8 @@ export const connectionsHandlers = [
       host: body.host,
       port: Number(body.port),
       databaseName: body.databaseName,
+      username: body.username,
+      tableCount: 0,
       createdAt: now,
       updatedAt: now,
     }
