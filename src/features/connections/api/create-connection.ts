@@ -7,12 +7,12 @@ import type { Connection } from '../types'
 
 export const createConnectionInputSchema = z.object({
   name: z.string().min(1, 'Required'),
-  type: z.enum(['POSTGRES', 'MYSQL']),
+  type: z.enum(['POSTGRES', 'MYSQL', 'ORACLE']),
   host: z.string().min(1, 'Required'),
   port: z.string().min(1, 'Required').regex(/^\d+$/, 'Must be a number'),
   databaseName: z.string().min(1, 'Required'),
-  username: z.string().min(1, 'Required'),
-  password: z.string().min(1, 'Required'),
+  username: z.string().optional(),
+  password: z.string().optional(),
 })
 
 export type CreateConnectionInput = z.infer<typeof createConnectionInputSchema>
@@ -40,3 +40,18 @@ export const useCreateConnection = ({
     },
   })
 }
+
+type TestConnectionInput = Pick<
+  CreateConnectionInput,
+  'type' | 'host' | 'port' | 'databaseName' | 'username' | 'password'
+>
+
+type TestConnectionResult = { isConnected: boolean }
+
+export const testConnection = (
+  data: TestConnectionInput,
+): Promise<TestConnectionResult> =>
+  api.post('/connections/test', { ...data, port: Number(data.port) })
+
+export const useTestConnection = () =>
+  useMutation({ mutationFn: testConnection })

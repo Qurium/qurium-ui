@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 
 import { TopBar } from '@/components/layouts/top-bar'
 import { Spinner } from '@/components/ui/spinner'
@@ -95,6 +95,7 @@ const ConnectionsRoute = () => {
           </>
         )}
       </div>
+      <Outlet />
     </>
   )
 }
