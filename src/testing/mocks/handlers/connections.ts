@@ -51,6 +51,7 @@ export const connectionsHandlers = [
       databaseName: body.databaseName,
       username: body.username,
       tableCount: 0,
+      isConnected: false,
       createdAt: now,
       updatedAt: now,
     }

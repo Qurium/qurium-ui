@@ -11,3 +11,12 @@ export type Connection = {
   createdAt: string
   updatedAt: string
 }
+
+export type UploadedFile = {
+  id: string
+  name: string
+  createdAt: string
+  updatedAt: string
+  tableCount: number
+  deletedAt: string | null
+}
