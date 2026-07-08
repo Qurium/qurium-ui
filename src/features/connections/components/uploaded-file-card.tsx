@@ -47,7 +47,7 @@ export const UploadedFileCard = ({ file }: UploadedFileCardProps) => {
       </div>
 
       <div className="mb-3 flex flex-col gap-1.5 rounded-md bg-canvas p-3">
-        <DetailRow label="Source" value={file.name} />
+        <DetailRow label="Source" value={file.fileName} />
         <DetailRow label="Uploaded" value={formatDate(file.updatedAt)} />
         <DetailRow
           label="Schema"

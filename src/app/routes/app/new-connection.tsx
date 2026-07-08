@@ -12,6 +12,7 @@ import {
   useCreateConnection,
   useTestConnection,
 } from '@/features/connections/api/create-connection'
+import { useUploadDdlFile } from '@/features/connections/api/upload-ddl-file'
 import { cn } from '@/utils/cn'
 
 const fieldClass =
@@ -238,9 +239,13 @@ const DdlUploadSection = ({ onClose }: { onClose: () => void }) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
+  const [name, setName] = useState('')
+  const upload = useUploadDdlFile({ onSuccess: onClose })
 
   const accept = (f: File) => {
     setFile(f)
+    if (!name) setName(f.name.replace(/\.[^.]+$/, ''))
+    upload.reset()
   }
 
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -323,6 +328,19 @@ const DdlUploadSection = ({ onClose }: { onClose: () => void }) => {
         )}
       </button>
 
+      <div>
+        <label className={labelClass} htmlFor="ddl-name">
+          Name
+        </label>
+        <input
+          id="ddl-name"
+          placeholder="my-schema"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={fieldClass}
+        />
+      </div>
+
       <div className="flex justify-end gap-2 border-t border-edge pt-4">
         <button
           type="button"
@@ -333,10 +351,11 @@ const DdlUploadSection = ({ onClose }: { onClose: () => void }) => {
         </button>
         <button
           type="button"
-          disabled={!file}
+          disabled={!file || !name.trim() || upload.isPending}
+          onClick={() => file && upload.mutate({ file, name: name.trim() })}
           className="rounded-md bg-linear-to-br from-violet to-violet/70 px-5 py-2 text-xs font-medium text-canvas-rail disabled:opacity-40"
         >
-          Upload
+          {upload.isPending ? 'Uploading…' : 'Upload'}
         </button>
       </div>
     </div>
