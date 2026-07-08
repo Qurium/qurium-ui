@@ -48,7 +48,14 @@ const DbConnectionForm = ({ onClose }: { onClose: () => void }) => {
     const valid = await trigger(fields)
     if (!valid) return
     const { type, host, port, databaseName, username, password } = getValues()
-    testConn.mutate({ type, host, port, databaseName, username, password })
+    testConn.mutate({
+      type,
+      host,
+      port,
+      databaseName,
+      ...(username ? { username } : {}),
+      ...(password ? { password } : {}),
+    })
   }
 
   return (

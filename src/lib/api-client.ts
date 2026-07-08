@@ -15,15 +15,45 @@ export const api = Axios.create({
 
 api.interceptors.request.use(requestInterceptor)
 
+type ApiErrorBody = {
+  title?: string
+  message?: string
+  violations?: { field: string; message: string }[]
+}
+
+function extractErrorMessage(error: unknown): {
+  title: string
+  message: string
+} {
+  const body: ApiErrorBody =
+    (error as { response?: { data?: ApiErrorBody } })?.response?.data ?? {}
+
+  if (body.violations?.length) {
+    return {
+      title: body.title ?? 'Validation error',
+      message: body.violations.map((v) => v.message).join('\n'),
+    }
+  }
+
+  return {
+    title: 'Error',
+    message:
+      body.message ??
+      (error as { message?: string })?.message ??
+      'Something went wrong',
+  }
+}
+
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const message = error.response?.data?.message || error.message
+    const { title, message } = extractErrorMessage(error)
 
     useNotifications.getState().addNotification({
       type: 'error',
-      title: 'Error',
+      title,
       message,
+      duration: 6000,
     })
 
     return Promise.reject(error)
