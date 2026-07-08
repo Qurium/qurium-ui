@@ -31,10 +31,12 @@ const createAppRouter = () =>
         {
           path: paths.app.connections.path,
           lazy: () => import('./routes/app/connections').then(convert),
-        },
-        {
-          path: paths.app.newConnection.path,
-          lazy: () => import('./routes/app/new-connection').then(convert),
+          children: [
+            {
+              path: paths.app.newConnection.path,
+              lazy: () => import('./routes/app/new-connection').then(convert),
+            },
+          ],
         },
         {
           path: paths.app.history.path,

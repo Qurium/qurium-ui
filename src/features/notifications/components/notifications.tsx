@@ -1,17 +1,91 @@
-import { CheckCircle, AlertTriangle, AlertCircle, Info, X } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { AlertCircle, AlertTriangle, CheckCircle, Info, X } from 'lucide-react'
 
 import { cn } from '@/utils/cn'
 
 import { useNotifications } from '../stores/notifications-store'
 import type { Notification } from '../types'
 
-const icons: Record<Notification['type'], React.ReactNode> = {
-  info: <Info className="size-5 text-blue-500" aria-hidden="true" />,
-  success: <CheckCircle className="size-5 text-green-500" aria-hidden="true" />,
-  warning: (
-    <AlertTriangle className="size-5 text-yellow-500" aria-hidden="true" />
-  ),
-  error: <AlertCircle className="size-5 text-red-500" aria-hidden="true" />,
+const CONFIG: Record<
+  Notification['type'],
+  { icon: React.ReactNode; bar: string; title: string }
+> = {
+  info: {
+    icon: <Info size={16} aria-hidden />,
+    bar: 'bg-blue',
+    title: 'text-blue',
+  },
+  success: {
+    icon: <CheckCircle size={16} aria-hidden />,
+    bar: 'bg-accent',
+    title: 'text-accent',
+  },
+  warning: {
+    icon: <AlertTriangle size={16} aria-hidden />,
+    bar: 'bg-amber',
+    title: 'text-amber',
+  },
+  error: {
+    icon: <AlertCircle size={16} aria-hidden />,
+    bar: 'bg-red-400',
+    title: 'text-red-400',
+  },
+}
+
+const NotificationItem = ({
+  notification,
+  onDismiss,
+}: {
+  notification: Notification
+  onDismiss: () => void
+}) => {
+  const config = CONFIG[notification.type]
+  const [leaving, setLeaving] = useState(false)
+
+  const startDismiss = useCallback(() => setLeaving(true), [])
+
+  useEffect(() => {
+    if (!notification.duration) return
+    const timer = setTimeout(startDismiss, notification.duration)
+    return () => clearTimeout(timer)
+  }, [notification.duration, startDismiss])
+
+  return (
+    <div
+      className={cn(
+        'pointer-events-auto flex w-80 overflow-hidden rounded-lg border border-edge-2 bg-surface shadow-xl',
+        leaving
+          ? 'animate-out fade-out-0 slide-out-to-right-4 duration-200'
+          : 'animate-in fade-in-0 slide-in-from-right-4 duration-300',
+      )}
+      onAnimationEnd={() => leaving && onDismiss()}
+    >
+      <div className={cn('w-1 shrink-0', config.bar)} />
+      <div className="flex flex-1 items-start gap-3 px-4 py-3.5">
+        <span className={cn('mt-0.5 shrink-0', config.title)}>
+          {config.icon}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className={cn('text-xs font-semibold', config.title)}>
+            {notification.title}
+          </p>
+          {notification.message && (
+            <p className="mt-0.5 whitespace-pre-line text-[11px] leading-relaxed text-ink-faint">
+              {notification.message}
+            </p>
+          )}
+        </div>
+        <button
+          type="button"
+          aria-label="Dismiss"
+          onClick={startDismiss}
+          className="mt-0.5 shrink-0 text-ink-muted hover:text-ink-faint focus:outline-none"
+        >
+          <X size={13} />
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export const Notifications = () => {
@@ -22,44 +96,15 @@ export const Notifications = () => {
   return (
     <div
       aria-live="assertive"
-      className="pointer-events-none fixed inset-0 z-100 flex items-end px-4 py-6 sm:items-start sm:p-6"
+      className="pointer-events-none fixed right-4 bottom-4 z-[100] flex flex-col items-end gap-2"
     >
-      <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={cn(
-              'pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black/5',
-            )}
-          >
-            <div className="p-4">
-              <div className="flex items-start">
-                <div className="shrink-0">{icons[notification.type]}</div>
-                <div className="ml-3 w-0 flex-1 pt-0.5">
-                  <p className="text-sm font-medium text-gray-900">
-                    {notification.title}
-                  </p>
-                  {notification.message && (
-                    <p className="mt-1 text-sm text-gray-500">
-                      {notification.message}
-                    </p>
-                  )}
-                </div>
-                <div className="ml-4 flex shrink-0">
-                  <button
-                    type="button"
-                    className="inline-flex rounded-md text-gray-400 hover:text-gray-500 focus:outline-hidden"
-                    onClick={() => dismissNotification(notification.id)}
-                  >
-                    <span className="sr-only">Close</span>
-                    <X className="size-5" aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {notifications.map((notification) => (
+        <NotificationItem
+          key={notification.id}
+          notification={notification}
+          onDismiss={() => dismissNotification(notification.id)}
+        />
+      ))}
     </div>
   )
 }

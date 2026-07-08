@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 
 import { TopBar } from '@/components/layouts/top-bar'
 import { Spinner } from '@/components/ui/spinner'
 import { paths } from '@/config/paths'
 import { useConnections } from '@/features/connections/api/get-connections'
 import { ConnectionCard } from '@/features/connections/components/connection-card'
+import { UploadedFileCard } from '@/features/connections/components/uploaded-file-card'
+import { useUploadedFiles } from '@/features/connections/api/get-uploaded-files'
 
 const PAGE_SIZE = 12
 
@@ -14,6 +16,8 @@ const ConnectionsRoute = () => {
   const [page, setPage] = useState(0)
   const connectionsQuery = useConnections({ page, size: PAGE_SIZE })
   const connections = connectionsQuery.data?.content ?? []
+  const uploadedFilesQuery = useUploadedFiles({ page, size: PAGE_SIZE })
+  const uploadedFiles = uploadedFilesQuery.data?.content ?? []
 
   return (
     <>
@@ -47,7 +51,9 @@ const ConnectionsRoute = () => {
               {connections.map((connection) => (
                 <ConnectionCard key={connection.id} connection={connection} />
               ))}
-
+              {uploadedFiles.map((file) => (
+                <UploadedFileCard key={file.id} file={file} />
+              ))}
               <Link
                 to={paths.app.newConnection.getHref()}
                 className="flex min-h-65 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-edge-2 text-center hover:border-accent hover:bg-accent/2"
@@ -89,6 +95,7 @@ const ConnectionsRoute = () => {
           </>
         )}
       </div>
+      <Outlet />
     </>
   )
 }
