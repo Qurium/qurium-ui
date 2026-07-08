@@ -26,7 +26,9 @@ const ConnectionsRoute = () => {
         meta={
           connectionsQuery.data && (
             <span className="font-mono text-[11px] text-ink-ghost">
-              {connectionsQuery.data.totalElements} connections
+              {connectionsQuery.data.totalElements === 1
+                ? '1 connection'
+                : `${connectionsQuery.data.totalElements} connections`}
             </span>
           )
         }
