@@ -20,7 +20,13 @@ export type CreateConnectionInput = z.infer<typeof createConnectionInputSchema>
 export const createConnection = (
   data: CreateConnectionInput,
 ): Promise<Connection> => {
-  return api.post('/connections', { ...data, port: Number(data.port) })
+  const { username, password, ...rest } = data
+  return api.post('/connections', {
+    ...rest,
+    port: Number(data.port),
+    ...(username ? { username } : {}),
+    ...(password ? { password } : {}),
+  })
 }
 
 type UseCreateConnectionOptions = {
@@ -41,10 +47,16 @@ export const useCreateConnection = ({
   })
 }
 
-type TestConnectionInput = Pick<
-  CreateConnectionInput,
-  'type' | 'host' | 'port' | 'databaseName' | 'username' | 'password'
->
+export const testConnectionInputSchema = createConnectionInputSchema.pick({
+  type: true,
+  host: true,
+  port: true,
+  databaseName: true,
+  username: true,
+  password: true,
+})
+
+export type TestConnectionInput = z.infer<typeof testConnectionInputSchema>
 
 type TestConnectionResult = { isConnected: boolean }
 

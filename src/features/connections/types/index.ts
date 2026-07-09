@@ -15,6 +15,7 @@ export type Connection = {
 export type UploadedFile = {
   id: string
   name: string
+  fileName: string
   createdAt: string
   updatedAt: string
   tableCount: number

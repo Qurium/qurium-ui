@@ -64,7 +64,9 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
           value={`${connection.host}:${connection.port}`}
         />
         <DetailRow label="Database" value={connection.databaseName} />
-        <DetailRow label="Username" value={connection.username} />
+        {connection.username && (
+          <DetailRow label="Username" value={connection.username} />
+        )}
         <DetailRow
           label="Schema"
           value={
