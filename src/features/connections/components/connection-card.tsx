@@ -9,6 +9,7 @@ import { useReconnectConnection } from '../api/reconnect-connection'
 
 import { DetailRow } from './detail-row'
 import type { Connection } from '../types'
+import { useIntrospectConnection } from '../api/introspect-connection'
 
 const TYPE_LABELS: Record<string, string> = {
   POSTGRES: 'PostgreSQL',
@@ -23,8 +24,16 @@ type ConnectionCardProps = {
 export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
   const isConnected = connection.isConnected
   const reconnect = useReconnectConnection()
+  const introspect = useIntrospectConnection()
   const queryClient = useQueryClient()
-  const [dialog, setDialog] = useState<'success' | 'error' | null>(null)
+  const [reconnectOpen, setReconnectOpen] = useState(false)
+  const [reconnectResult, setReconnectResult] = useState<'success' | 'error'>(
+    'error',
+  )
+  const [introspectOpen, setIntrospectOpen] = useState(false)
+  const [introspectResult, setIntrospectResult] = useState<'success' | 'error'>(
+    'error',
+  )
 
   const handleReconnect = () => {
     reconnect.mutate(connection.id, {
@@ -35,9 +44,27 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
         const updated = pages
           .flatMap(([, data]) => data?.content ?? [])
           .find((c) => c.id === connection.id)
-        setDialog(updated?.isConnected ? 'success' : 'error')
+        setReconnectResult(updated?.isConnected ? 'success' : 'error')
+        setReconnectOpen(true)
       },
-      onError: () => setDialog('error'),
+      onError: () => {
+        setReconnectResult('error')
+        setReconnectOpen(true)
+      },
+    })
+  }
+
+  const handleIntrospect = () => {
+    introspect.mutate(connection.id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['connections'] })
+        setIntrospectResult('success')
+        setIntrospectOpen(true)
+      },
+      onError: () => {
+        setIntrospectResult('error')
+        setIntrospectOpen(true)
+      },
     })
   }
 
@@ -106,6 +133,8 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
         {isConnected && (
           <>
             <button
+              disabled={reconnect.isPending}
+              onClick={handleIntrospect}
               type="button"
               className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted"
             >
@@ -135,12 +164,12 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
       </div>
 
       <Dialog
-        open={dialog !== null}
-        onOpenChange={(open) => !open && setDialog(null)}
+        open={reconnectOpen}
+        onOpenChange={(open) => !open && setReconnectOpen(false)}
       >
         <DialogContent className="max-w-sm border border-edge-2 bg-surface p-0 shadow-2xl">
           <div className="flex flex-col items-center gap-3 px-6 py-8 text-center">
-            {dialog === 'success' ? (
+            {reconnectResult === 'success' ? (
               <>
                 <CheckCircle2
                   size={36}
@@ -171,6 +200,38 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
                   </span>
                   .<br />
                   Please check your connection settings and try again.
+                </p>
+              </>
+            )}
+            <DialogClose className="mt-2 rounded-md border border-edge-2 px-5 py-2 text-xs font-medium text-ink-faint hover:border-ink-muted">
+              Close
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={introspectOpen}
+        onOpenChange={(open) => !open && setIntrospectOpen(false)}
+      >
+        <DialogContent className="max-w-sm border border-edge-2 bg-surface p-0 shadow-2xl">
+          <div className="flex flex-col items-center gap-3 px-6 py-8 text-center">
+            {introspectResult === 'success' ? (
+              <>
+                <CheckCircle2
+                  size={36}
+                  strokeWidth={1.3}
+                  className="text-accent"
+                />
+                <p className="text-sm font-semibold text-ink">
+                  Introspected with success!
+                </p>
+              </>
+            ) : (
+              <>
+                <XCircle size={36} strokeWidth={1.3} className="text-amber" />
+                <p className="text-sm font-semibold text-ink">
+                  An error occurred while introspecting the connection
                 </p>
               </>
             )}
