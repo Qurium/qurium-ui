@@ -30,6 +30,13 @@ const paginate = <T>(
 }
 
 export const connectionsHandlers = [
+  http.patch(`${env.API_URL}/connections/:id/reconnect`, ({ params }) => {
+    const connection = connections.find((c) => c.id === params.id)
+    if (!connection) return new HttpResponse(null, { status: 404 })
+    connection.isConnected = true
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   http.get(`${env.API_URL}/connections`, ({ request }) => {
     const url = new URL(request.url)
     const page = Number(url.searchParams.get('page') ?? 0)
