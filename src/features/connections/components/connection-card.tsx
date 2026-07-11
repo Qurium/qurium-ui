@@ -133,7 +133,7 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
         {isConnected && (
           <>
             <button
-              disabled={reconnect.isPending}
+              disabled={introspect.isPending}
               onClick={handleIntrospect}
               type="button"
               className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted"
@@ -194,11 +194,6 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
                   Connection failed
                 </p>
                 <p className="text-xs text-ink-muted">
-                  Could not reconnect to{' '}
-                  <span className="font-medium text-ink">
-                    {connection.name}
-                  </span>
-                  .<br />
                   Please check your connection settings and try again.
                 </p>
               </>
