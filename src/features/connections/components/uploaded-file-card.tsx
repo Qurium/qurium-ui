@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileCode, MoreHorizontal } from 'lucide-react'
+import { FileCode, Trash2 } from 'lucide-react'
 
 import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog'
 import { cn } from '@/utils/cn'
@@ -9,6 +9,10 @@ import { useReuploadDdlFile } from '../api/reupload-ddl-file'
 import { DetailRow } from './detail-row'
 import { DdlUploadForm } from './ddl-upload-form'
 import type { UploadedFile } from '../types'
+import { useDeleteUploadedFile } from '../api/delete-connection'
+import { useQueryClient } from '@tanstack/react-query'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useNotifications } from '@/features/notifications/stores/notifications-store'
 
 type UploadedFileCardProps = {
   file: UploadedFile
@@ -16,10 +20,39 @@ type UploadedFileCardProps = {
 
 export const UploadedFileCard = ({ file }: UploadedFileCardProps) => {
   const isDeleted = Boolean(file.deletedAt)
+  const queryClient = useQueryClient()
   const reupload = useReuploadDdlFile({
     onSuccess: () => setReuploadOpen(false),
   })
+  const deleteUploadedFile = useDeleteUploadedFile()
   const [reuploadOpen, setReuploadOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+
+  const { addNotification } = useNotifications()
+
+  const handleDeleteUploadedFile = () => {
+    deleteUploadedFile.mutate(file.id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['uploaded-files'] })
+        setDeleteOpen(false)
+        addNotification({
+          type: 'success',
+          title: 'File deleted',
+          message: `${file.name} has been removed.`,
+          duration: 4000,
+        })
+      },
+      onError: () => {
+        setDeleteOpen(false)
+        addNotification({
+          type: 'error',
+          title: 'Error deleting file',
+          message: `There was an error deleting ${file.name}. Please try again.`,
+          duration: 4000,
+        })
+      },
+    })
+  }
 
   return (
     <div className="rounded-lg border border-edge-2 bg-surface-2 p-5">
@@ -67,12 +100,6 @@ export const UploadedFileCard = ({ file }: UploadedFileCardProps) => {
       <div className="flex gap-2">
         <button
           type="button"
-          className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted"
-        >
-          View schema
-        </button>
-        <button
-          type="button"
           onClick={() => setReuploadOpen(true)}
           className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted"
         >
@@ -80,10 +107,11 @@ export const UploadedFileCard = ({ file }: UploadedFileCardProps) => {
         </button>
         <button
           type="button"
-          aria-label="More actions"
+          aria-label="Delete file"
+          onClick={() => setDeleteOpen(true)}
           className="flex size-9 items-center justify-center rounded-md border border-edge-2 text-ink-muted hover:border-ink-muted"
         >
-          <MoreHorizontal size={14} />
+          <Trash2 size={14} />
         </button>
       </div>
 
@@ -110,6 +138,16 @@ export const UploadedFileCard = ({ file }: UploadedFileCardProps) => {
             onCancel={() => setReuploadOpen(false)}
           />
         </DialogContent>
+      </Dialog>
+      <Dialog
+        open={deleteOpen}
+        onOpenChange={(open) => !open && setDeleteOpen(false)}
+      >
+        <ConfirmDialog
+          message="Are you sure you want to delete this file?"
+          isPending={deleteUploadedFile.isPending}
+          onConfirm={handleDeleteUploadedFile}
+        />
       </Dialog>
     </div>
   )
