@@ -13,6 +13,7 @@ import {
 } from '@/features/connections/api/create-connection'
 import { useUploadDdlFile } from '@/features/connections/api/upload-ddl-file'
 import { DdlUploadForm } from '@/features/connections/components/ddl-upload-form'
+import { useNotifications } from '@/features/notifications/stores/notifications-store'
 import { cn } from '@/utils/cn'
 
 const fieldClass =
@@ -40,7 +41,7 @@ const DbConnectionForm = ({ onClose }: { onClose: () => void }) => {
     defaultValues: { type: 'POSTGRES' },
   })
 
-  const createConnection = useCreateConnection({ onSuccess: onClose })
+  const createConnection = useCreateConnection()
   const testConn = useTestConnection()
   const type = watch('type') // eslint-disable-line react-hooks/incompatible-library
 
@@ -236,12 +237,33 @@ const DbConnectionForm = ({ onClose }: { onClose: () => void }) => {
 }
 
 const DdlUploadSection = ({ onClose }: { onClose: () => void }) => {
-  const upload = useUploadDdlFile({ onSuccess: onClose })
+  const upload = useUploadDdlFile()
+  const { addNotification } = useNotifications()
 
   return (
     <DdlUploadForm
       isPending={upload.isPending}
-      onSubmit={(data) => upload.mutate(data)}
+      onSubmit={(data) =>
+        upload.mutate(data, {
+          onSuccess: () => {
+            addNotification({
+              type: 'success',
+              title: 'DDL file uploaded',
+              message: `${data.name} has been imported.`,
+              duration: 4000,
+            })
+            onClose()
+          },
+          onError: () => {
+            addNotification({
+              type: 'error',
+              title: 'Upload failed',
+              message: `${data.name} could not be uploaded. Please try again.`,
+              duration: 4000,
+            })
+          },
+        })
+      }
       onCancel={onClose}
     />
   )
