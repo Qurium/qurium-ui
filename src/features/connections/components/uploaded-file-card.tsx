@@ -21,14 +21,39 @@ type UploadedFileCardProps = {
 export const UploadedFileCard = ({ file }: UploadedFileCardProps) => {
   const isDeleted = Boolean(file.deletedAt)
   const queryClient = useQueryClient()
-  const reupload = useReuploadDdlFile({
-    onSuccess: () => setReuploadOpen(false),
-  })
+  const reupload = useReuploadDdlFile()
   const deleteUploadedFile = useDeleteUploadedFile()
   const [reuploadOpen, setReuploadOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   const { addNotification } = useNotifications()
+
+  const handleReupload = (uploadedFile: File, name: string) => {
+    reupload.mutate(
+      { file: uploadedFile, name, id: file.id },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['uploaded-files'] })
+          setReuploadOpen(false)
+          addNotification({
+            type: 'success',
+            title: 'File re-uploaded',
+            message: `File has been re-uploaded.`,
+            duration: 4000,
+          })
+        },
+        onError: () => {
+          setReuploadOpen(false)
+          addNotification({
+            type: 'error',
+            title: 'Error re-uploading file',
+            message: `There was an error re-uploading the file. Please try again.`,
+            duration: 4000,
+          })
+        },
+      },
+    )
+  }
 
   const handleDeleteUploadedFile = () => {
     deleteUploadedFile.mutate(file.id, {
@@ -134,7 +159,7 @@ export const UploadedFileCard = ({ file }: UploadedFileCardProps) => {
           <DdlUploadForm
             initialName={file.name}
             isPending={reupload.isPending}
-            onSubmit={(data) => reupload.mutate({ ...data, id: file.id })}
+            onSubmit={(data) => handleReupload(data.file, data.name)}
             onCancel={() => setReuploadOpen(false)}
           />
         </DialogContent>
