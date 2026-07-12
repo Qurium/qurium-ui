@@ -1,8 +1,16 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, Database, MoreHorizontal, XCircle } from 'lucide-react'
+import { useNotifications } from '@/features/notifications/stores/notifications-store'
+import {
+  CheckCircle2,
+  Database,
+  SquarePen,
+  Trash2,
+  XCircle,
+} from 'lucide-react'
 
 import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { cn } from '@/utils/cn'
 import type { PaginatedResponse } from '@/types/api'
 import { useReconnectConnection } from '../api/reconnect-connection'
@@ -10,6 +18,7 @@ import { useReconnectConnection } from '../api/reconnect-connection'
 import { DetailRow } from './detail-row'
 import type { Connection } from '../types'
 import { useIntrospectConnection } from '../api/introspect-connection'
+import { useDeleteConnection } from '../api/delete-connection'
 
 const TYPE_LABELS: Record<string, string> = {
   POSTGRES: 'PostgreSQL',
@@ -23,8 +32,9 @@ type ConnectionCardProps = {
 
 export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
   const isConnected = connection.isConnected
-  const reconnect = useReconnectConnection()
-  const introspect = useIntrospectConnection()
+  const reconnectConnection = useReconnectConnection()
+  const introspectConnection = useIntrospectConnection()
+  const deleteConnection = useDeleteConnection()
   const queryClient = useQueryClient()
   const [reconnectOpen, setReconnectOpen] = useState(false)
   const [reconnectResult, setReconnectResult] = useState<'success' | 'error'>(
@@ -35,8 +45,12 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
     'error',
   )
 
+  const [deleteOpen, setDeleteOpen] = useState(false)
+
+  const { addNotification } = useNotifications()
+
   const handleReconnect = () => {
-    reconnect.mutate(connection.id, {
+    reconnectConnection.mutate(connection.id, {
       onSuccess: () => {
         const pages = queryClient.getQueriesData<PaginatedResponse<Connection>>(
           { queryKey: ['connections'] },
@@ -55,7 +69,7 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
   }
 
   const handleIntrospect = () => {
-    introspect.mutate(connection.id, {
+    introspectConnection.mutate(connection.id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['connections'] })
         setIntrospectResult('success')
@@ -64,6 +78,30 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
       onError: () => {
         setIntrospectResult('error')
         setIntrospectOpen(true)
+      },
+    })
+  }
+
+  const handleDelete = () => {
+    deleteConnection.mutate(connection.id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['connections'] })
+        setDeleteOpen(true)
+        addNotification({
+          type: 'success',
+          title: 'Connection deleted',
+          message: `${connection.name} has been removed.`,
+          duration: 4000,
+        })
+      },
+      onError: () => {
+        setDeleteOpen(true)
+        addNotification({
+          type: 'error',
+          title: 'Failed to delete connection',
+          message: `${connection.name} could not be removed.`,
+          duration: 4000,
+        })
       },
     })
   }
@@ -133,7 +171,7 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
         {isConnected && (
           <>
             <button
-              disabled={introspect.isPending}
+              disabled={introspectConnection.isPending}
               onClick={handleIntrospect}
               type="button"
               className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted"
@@ -146,11 +184,13 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
           <>
             <button
               type="button"
-              disabled={reconnect.isPending}
+              disabled={reconnectConnection.isPending}
               onClick={handleReconnect}
               className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted disabled:opacity-50"
             >
-              {reconnect.isPending ? 'Connecting…' : 'Retry Connection'}
+              {reconnectConnection.isPending
+                ? 'Connecting…'
+                : 'Retry Connection'}
             </button>
           </>
         )}
@@ -159,7 +199,15 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
           aria-label="More actions"
           className="flex size-9 items-center justify-center rounded-md border border-edge-2 text-ink-muted hover:border-ink-muted"
         >
-          <MoreHorizontal size={14} />
+          <SquarePen size={14} />
+        </button>
+        <button
+          onClick={setDeleteOpen.bind(null, true)}
+          type="button"
+          aria-label="More actions"
+          className="flex size-9 items-center justify-center rounded-md border border-edge-2 text-ink-muted hover:border-ink-muted"
+        >
+          <Trash2 size={14} />
         </button>
       </div>
 
@@ -235,6 +283,17 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
             </DialogClose>
           </div>
         </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deleteOpen}
+        onOpenChange={(open) => !open && setDeleteOpen(false)}
+      >
+        <ConfirmDialog
+          message="Are you sure you want to delete this connection?"
+          isPending={deleteConnection.isPending}
+          onConfirm={handleDelete}
+        />
       </Dialog>
     </div>
   )
