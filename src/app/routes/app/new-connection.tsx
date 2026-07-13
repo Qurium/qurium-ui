@@ -28,7 +28,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'ddl', label: 'Upload DDL file' },
 ]
 
-const DbConnectionForm = ({ onClose }: { onClose: () => void }) => {
+export const DbConnectionForm = ({ onClose }: { onClose: () => void }) => {
   const {
     register,
     handleSubmit,

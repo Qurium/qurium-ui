@@ -25,10 +25,27 @@ const ConnectionsRoute = () => {
         title="Connections"
         meta={
           connectionsQuery.data && (
-            <span className="font-mono text-[11px] text-ink-ghost">
+            <span className="font-mono text-[11px] text-ink-faint flex items-center gap-1">
               {connectionsQuery.data.totalElements === 1
                 ? '1 connection'
                 : `${connectionsQuery.data.totalElements} connections`}
+              {connections.filter((c) => c.isConnected).length > 0 && (
+                <>
+                  <span className="text-xl text-ink-faint">·</span>
+                  <span className="text-ink-faint">
+                    {connections.filter((c) => c.isConnected).length} active
+                  </span>
+                </>
+              )}
+              {connections.filter((c) => !c.isConnected).length > 0 && (
+                <>
+                  <span className="text-xl text-ink-faint">·</span>
+                  <span className="text-ink-faint">
+                    {connections.filter((c) => !c.isConnected).length}{' '}
+                    unreachable
+                  </span>
+                </>
+              )}
             </span>
           )
         }

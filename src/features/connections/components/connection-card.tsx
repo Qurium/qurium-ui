@@ -3,13 +3,18 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNotifications } from '@/features/notifications/stores/notifications-store'
 import { Database, SquarePen, Trash2 } from 'lucide-react'
 
-import { Dialog } from '@/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { cn } from '@/utils/cn'
 import type { PaginatedResponse } from '@/types/api'
 import { useReconnectConnection } from '../api/reconnect-connection'
+import {
+  useUpdateConnection,
+  type UpdateConnectionInput,
+} from '../api/update-connection'
 
 import { DetailRow } from './detail-row'
+import { EditConnectionForm } from './edit-connection-form'
 import type { Connection } from '../types'
 import { useIntrospectConnection } from '../api/introspect-connection'
 import { useDeleteConnection } from '../api/delete-connection'
@@ -29,9 +34,11 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
   const reconnectConnection = useReconnectConnection()
   const introspectConnection = useIntrospectConnection()
   const deleteConnection = useDeleteConnection()
+  const updateConnection = useUpdateConnection()
   const queryClient = useQueryClient()
 
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   const { addNotification } = useNotifications()
 
@@ -98,7 +105,7 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
     deleteConnection.mutate(connection.id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['connections'] })
-        setDeleteOpen(true)
+        setDeleteOpen(false)
         addNotification({
           type: 'success',
           title: 'Connection deleted',
@@ -107,7 +114,7 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
         })
       },
       onError: () => {
-        setDeleteOpen(true)
+        setDeleteOpen(false)
         addNotification({
           type: 'error',
           title: 'Failed to delete connection',
@@ -116,6 +123,31 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
         })
       },
     })
+  }
+
+  const handleUpdate = (data: UpdateConnectionInput) => {
+    updateConnection.mutate(
+      { id: connection.id, data },
+      {
+        onSuccess: () => {
+          setEditOpen(false)
+          addNotification({
+            type: 'success',
+            title: 'Connection updated',
+            message: `${data.name} has been saved.`,
+            duration: 4000,
+          })
+        },
+        onError: () => {
+          addNotification({
+            type: 'error',
+            title: 'Update failed',
+            message: `${connection.name} could not be updated.`,
+            duration: 4000,
+          })
+        },
+      },
+    )
   }
 
   return (
@@ -181,46 +213,64 @@ export const ConnectionCard = ({ connection }: ConnectionCardProps) => {
 
       <div className="flex gap-2">
         {isConnected && (
-          <>
-            <button
-              onClick={handleIntrospect}
-              type="button"
-              className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted"
-            >
-              Introspect
-            </button>
-          </>
+          <button
+            onClick={handleIntrospect}
+            type="button"
+            className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted"
+          >
+            Introspect
+          </button>
         )}
         {!isConnected && (
-          <>
-            <button
-              type="button"
-              disabled={reconnectConnection.isPending}
-              onClick={handleReconnect}
-              className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted disabled:opacity-50"
-            >
-              {reconnectConnection.isPending
-                ? 'Connecting…'
-                : 'Retry Connection'}
-            </button>
-          </>
+          <button
+            type="button"
+            disabled={reconnectConnection.isPending}
+            onClick={handleReconnect}
+            className="flex-1 rounded-md border border-edge-2 py-1.5 text-center text-[11px] font-medium text-ink-faint hover:border-ink-muted disabled:opacity-50"
+          >
+            {reconnectConnection.isPending ? 'Connecting…' : 'Retry Connection'}
+          </button>
         )}
         <button
+          onClick={() => setEditOpen(true)}
           type="button"
-          aria-label="More actions"
+          aria-label="Edit connection"
           className="flex size-9 items-center justify-center rounded-md border border-edge-2 text-ink-muted hover:border-ink-muted"
         >
           <SquarePen size={14} />
         </button>
         <button
-          onClick={setDeleteOpen.bind(null, true)}
+          onClick={() => setDeleteOpen(true)}
           type="button"
-          aria-label="More actions"
+          aria-label="Delete connection"
           className="flex size-9 items-center justify-center rounded-md border border-edge-2 text-ink-muted hover:border-ink-muted"
         >
           <Trash2 size={14} />
         </button>
       </div>
+
+      <Dialog
+        open={editOpen}
+        onOpenChange={(open) => !open && setEditOpen(false)}
+      >
+        <DialogContent
+          className="max-w-[480px] border border-edge-2 bg-surface p-0 shadow-2xl"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <div className="flex items-center justify-between border-b border-edge px-6 py-4">
+            <h2 className="text-sm font-semibold text-ink">Edit connection</h2>
+            <DialogClose className="flex size-7 items-center justify-center rounded-md text-ink-muted hover:bg-surface-3 hover:text-ink focus:outline-none">
+              ×
+            </DialogClose>
+          </div>
+          <EditConnectionForm
+            connection={connection}
+            isPending={updateConnection.isPending}
+            onSubmit={handleUpdate}
+            onCancel={() => setEditOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={deleteOpen}
