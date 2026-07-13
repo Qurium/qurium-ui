@@ -12,12 +12,7 @@ export const TopBar = ({ title, meta, left, right }: TopBarProps) => {
     <div className="flex h-13 flex-none items-center justify-between border-b border-edge bg-surface px-6">
       <div className="flex items-center gap-3">
         <h1 className="font-sans text-sm font-semibold text-ink">{title}</h1>
-        {meta && (
-          <>
-            <span className="text-xs text-ink-muted">·</span>
-            {meta}
-          </>
-        )}
+        {meta && <>{meta}</>}
         {left}
       </div>
       {right && <div className="flex items-center gap-2">{right}</div>}

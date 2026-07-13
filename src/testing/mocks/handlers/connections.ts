@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw'
 
 import { env } from '@/config/env'
 import type { CreateConnectionInput } from '@/features/connections/api/create-connection'
+import type { UpdateConnectionInput } from '@/features/connections/api/update-connection'
 import type { Connection } from '@/features/connections/types'
 import type { PaginatedResponse } from '@/types/api'
 
@@ -30,6 +31,22 @@ const paginate = <T>(
 }
 
 export const connectionsHandlers = [
+  http.put(`${env.API_URL}/connections/:id`, async ({ params, request }) => {
+    const connection = connections.find((c) => c.id === params.id)
+    if (!connection) return new HttpResponse(null, { status: 404 })
+    const body = (await request.json()) as UpdateConnectionInput & {
+      port: number
+    }
+    connection.name = body.name
+    connection.host = body.host
+    connection.port = body.port
+    connection.databaseName = body.databaseName
+    if (body.username) connection.username = body.username
+    const now = new Date().toISOString()
+    connection.updatedAt = now
+    return HttpResponse.json(connection)
+  }),
+
   http.patch(`${env.API_URL}/connections/:id/reconnect`, ({ params }) => {
     const connection = connections.find((c) => c.id === params.id)
     if (!connection) return new HttpResponse(null, { status: 404 })
