@@ -1,32 +1,54 @@
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
 import { Key, Link2, Rows3 } from 'lucide-react'
 
 import { cn } from '@/utils/cn'
 
 import type { SchemaTable } from '../types'
 
-type TableNodeProps = {
+export type TableNodeData = {
   table: SchemaTable
   selected?: boolean
-  style?: React.CSSProperties
-  onSelect?: () => void
 }
 
-export const TableNode = ({
-  table,
-  selected,
-  style,
-  onSelect,
-}: TableNodeProps) => {
+export type TableNodeType = Node<TableNodeData, 'tableNode'>
+
+export const TableNode = ({ data, selected }: NodeProps<TableNodeType>) => {
+  const { table } = data
+
+  const handleClass = '!h-2 !w-2 !border-edge !bg-accent/50'
+
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      style={style}
+    <div
       className={cn(
-        'absolute w-58 overflow-hidden rounded-lg border bg-surface-2 text-left shadow-lg',
-        selected ? 'z-10 border-accent shadow-accent/10' : 'z-0 border-edge-2',
+        'w-58 overflow-hidden rounded-lg border bg-surface-2 text-left shadow-lg',
+        selected ? 'border-accent shadow-accent/10' : 'border-edge-2',
       )}
     >
+      <Handle
+        id="left-target"
+        type="target"
+        position={Position.Left}
+        className={handleClass}
+      />
+      <Handle
+        id="left-source"
+        type="source"
+        position={Position.Left}
+        className={handleClass}
+      />
+      <Handle
+        id="right-target"
+        type="target"
+        position={Position.Right}
+        className={handleClass}
+      />
+      <Handle
+        id="right-source"
+        type="source"
+        position={Position.Right}
+        className={handleClass}
+      />
+
       <div
         className={cn(
           'flex items-center justify-between border-b border-edge-2 px-3.5 py-2.5',
@@ -52,6 +74,7 @@ export const TableNode = ({
           {table.columns.length} cols
         </span>
       </div>
+
       <div className="py-1.5">
         {table.columns.map((column) => (
           <div
@@ -86,6 +109,6 @@ export const TableNode = ({
           </div>
         ))}
       </div>
-    </button>
+    </div>
   )
 }

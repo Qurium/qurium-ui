@@ -1,13 +1,23 @@
-import { useMemo, useState } from 'react'
-import { Key, Link2, Minus, Plus } from 'lucide-react'
+import { useEffect, useMemo } from 'react'
+import {
+  Background,
+  BackgroundVariant,
+  Controls,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+  type Edge,
+} from '@xyflow/react'
+import { Link2, Star } from 'lucide-react'
 
 import type { SchemaTable } from '../types'
-import { TableNode } from './table-node'
+import { TableNode, type TableNodeType } from './table-node'
 
-const TABLE_WIDTH = 232
+const NODE_WIDTH = 232
 const HEADER_HEIGHT = 41
 const ROW_HEIGHT = 27
-const RELATION_COLORS = ['#00d4aa', '#0090ff', '#e8a838', '#c084fc']
+
+const nodeTypes = { tableNode: TableNode }
 
 const tableHeight = (table: SchemaTable) =>
   HEADER_HEIGHT + table.columns.length * ROW_HEIGHT + 12
@@ -17,109 +27,93 @@ type ErdCanvasProps = {
 }
 
 export const ErdCanvas = ({ tables }: ErdCanvasProps) => {
-  const [selected, setSelected] = useState<string | undefined>(tables[0]?.name)
-
-  const byName = useMemo(
-    () => new Map(tables.map((table) => [table.name, table])),
+  const initialNodes: TableNodeType[] = useMemo(
+    () =>
+      tables.map((table) => ({
+        id: table.name,
+        type: 'tableNode',
+        position: table.position,
+        data: { table },
+        width: NODE_WIDTH,
+        height: tableHeight(table),
+      })),
     [tables],
   )
 
-  const relations = useMemo(() => {
-    const paths = tables.flatMap((table) =>
-      table.columns
-        .filter((column) => column.references)
-        .map((column) => {
-          const target = byName.get(column.references!.table)
-          if (!target) return null
+  const positionByName = useMemo(
+    () => new Map(tables.map((t) => [t.name, t.position])),
+    [tables],
+  )
 
-          const from = {
-            x: table.position.x + TABLE_WIDTH,
-            y: table.position.y + tableHeight(table) / 2,
-          }
-          const to = {
-            x: target.position.x,
-            y: target.position.y + tableHeight(target) / 2,
-          }
-          const midX = (from.x + to.x) / 2
+  const initialEdges: Edge[] = useMemo(() => {
+    const result: Edge[] = []
+    for (const table of tables) {
+      for (const column of table.columns) {
+        if (!column.references) continue
 
-          return {
-            key: `${table.name}.${column.name}`,
-            path: `M ${from.x} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x} ${to.y}`,
-          }
+        const sourcePos = positionByName.get(table.name)
+        const targetPos = positionByName.get(column.references.table)
+        const goesLeft = targetPos && sourcePos && targetPos.x < sourcePos.x
+
+        result.push({
+          id: `${table.name}.${column.name}`,
+          source: table.name,
+          target: column.references.table,
+          sourceHandle: goesLeft ? 'left-source' : 'right-source',
+          targetHandle: goesLeft ? 'right-target' : 'left-target',
+          type: 'default',
+          style: {
+            stroke: '#00d4aa',
+            strokeWidth: 1.5,
+            strokeDasharray: '4 3',
+            opacity: 0.6,
+          },
         })
-        .filter((relation): relation is NonNullable<typeof relation> =>
-          Boolean(relation),
-        ),
-    )
+      }
+    }
+    return result
+  }, [tables, positionByName])
 
-    return paths.map((relation, index) => ({
-      ...relation,
-      color: RELATION_COLORS[index % RELATION_COLORS.length],
-    }))
-  }, [tables, byName])
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
-  const canvasWidth = Math.max(
-    ...tables.map((t) => t.position.x + TABLE_WIDTH + 60),
-  )
-  const canvasHeight = Math.max(
-    ...tables.map((t) => t.position.y + tableHeight(t) + 60),
-  )
+  useEffect(() => {
+    setNodes(initialNodes)
+  }, [initialNodes, setNodes])
+  useEffect(() => {
+    setEdges(initialEdges)
+  }, [initialEdges, setEdges])
 
   return (
-    <div className="relative flex-1 overflow-auto bg-canvas bg-[radial-gradient(circle,var(--color-edge)_1px,transparent_1px)] bg-[length:24px_24px]">
-      <div
-        className="relative"
-        style={{ width: canvasWidth, height: canvasHeight }}
+    <div className="relative flex-1">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={{ padding: 0.2 }}
+        minZoom={0.2}
+        maxZoom={2}
+        proOptions={{ hideAttribution: true }}
+        colorMode="dark"
+        style={
+          { '--xy-background-color': 'rgb(11 14 20)' } as React.CSSProperties
+        }
       >
-        <svg
-          className="pointer-events-none absolute inset-0"
-          width={canvasWidth}
-          height={canvasHeight}
-        >
-          {relations.map((relation) => (
-            <path
-              key={relation.key}
-              d={relation.path}
-              stroke={relation.color}
-              strokeWidth={1.5}
-              strokeDasharray="4 3"
-              fill="none"
-              opacity={0.5}
-            />
-          ))}
-        </svg>
-
-        {tables.map((table) => (
-          <TableNode
-            key={table.name}
-            table={table}
-            selected={selected === table.name}
-            style={{ left: table.position.x, top: table.position.y }}
-            onSelect={() => setSelected(table.name)}
-          />
-        ))}
-      </div>
-
-      <div className="absolute top-4 right-4 z-10 flex flex-col overflow-hidden rounded-md border border-edge">
-        <button
-          type="button"
-          aria-label="Zoom in"
-          className="flex size-8 items-center justify-center bg-surface-2 text-ink-faint hover:text-ink-dim"
-        >
-          <Plus size={16} />
-        </button>
-        <button
-          type="button"
-          aria-label="Zoom out"
-          className="flex size-8 items-center justify-center border-t border-edge bg-surface-2 text-ink-faint hover:text-ink-dim"
-        >
-          <Minus size={16} />
-        </button>
-      </div>
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={12}
+          size={2}
+          color="var(--color-edge)"
+        />
+        <Controls className="!border-edge !bg-surface-2 [&>button]:!border-edge [&>button]:!bg-surface-2 [&>button]:!text-ink-faint [&>button:hover]:!text-ink-dim" />
+      </ReactFlow>
 
       <div className="absolute bottom-4 left-4 z-10 flex items-center gap-4 rounded-md border border-edge bg-surface px-3.5 py-2">
         <div className="flex items-center gap-1.5 text-[10px] text-ink-muted">
-          <Key size={10} className="text-amber" />
+          <Star size={10} className="text-amber" />
           Primary key
         </div>
         <div className="flex items-center gap-1.5 text-[10px] text-ink-muted">

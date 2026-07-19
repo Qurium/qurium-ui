@@ -5,9 +5,9 @@ import { paths } from '@/config/paths'
 import { cn } from '@/utils/cn'
 
 const navItems = [
-  { to: paths.app.schema.getHref(), label: 'Schema', icon: Database },
+  { to: paths.app.schema.getHref(), label: 'Schema', icon: Network },
   { to: paths.app.query.getHref(), label: 'Query', icon: Terminal },
-  { to: paths.app.connections.getHref(), label: 'Connections', icon: Network },
+  { to: paths.app.connections.getHref(), label: 'Connections', icon: Database },
   { to: paths.app.history.getHref(), label: 'History', icon: History },
 ]
 

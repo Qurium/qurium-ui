@@ -13,7 +13,9 @@ import { cn } from '@/utils/cn'
 type ViewMode = 'diagram' | 'list'
 
 const SchemaRoute = () => {
-  const schemaQuery = useSchema()
+  const schemaQuery = useSchema({
+    connectionId: '1a78401e-4a59-4f19-b011-3cdf36e1c1e6',
+  })
   const [view, setView] = useState<ViewMode>('diagram')
   const [search, setSearch] = useState('')
 
@@ -33,7 +35,7 @@ const SchemaRoute = () => {
       ),
   ).length
 
-  if (schemaQuery.isLoading || !schemaQuery.data) {
+  if (schemaQuery.isLoading || !schemaQuery.data || !schemaQuery.data.tables) {
     return (
       <div className="flex flex-1 items-center justify-center bg-canvas">
         <Spinner />
