@@ -117,7 +117,7 @@ export const ErdCanvas = ({ tables }: ErdCanvasProps) => {
           Primary key
         </div>
         <div className="flex items-center gap-1.5 text-[10px] text-ink-muted">
-          <Link2 size={10} className="text-blue" />
+          <Link2 size={10} className="text-violet" />
           Foreign key
         </div>
         <div className="flex items-center gap-1.5 text-[10px] text-ink-muted">

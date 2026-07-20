@@ -17,6 +17,7 @@ type RawIndex = { name: string; columns: string; unique: boolean }
 type RawTable = {
   table: string
   columns: RawColumn[]
+  primaryKeys?: string[]
   constraints?: RawConstraint[]
   indexes?: RawIndex[]
 }
@@ -40,11 +41,7 @@ function transformTable(raw: RawTable, index: number): SchemaTable {
   const constraints = raw.constraints ?? []
   const indexes = raw.indexes ?? []
 
-  const pkColumns = new Set<string>(
-    indexes
-      .filter((idx) => idx.name === 'PRIMARY')
-      .flatMap((idx) => idx.columns.split(',').map((c) => c.trim())),
-  )
+  const pkColumns = new Set<string>(raw.primaryKeys ?? [])
 
   const uniqueColumns = new Set<string>(
     indexes
