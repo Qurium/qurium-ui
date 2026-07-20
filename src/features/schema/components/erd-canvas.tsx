@@ -8,7 +8,7 @@ import {
   useNodesState,
   type Edge,
 } from '@xyflow/react'
-import { Link2, Star } from 'lucide-react'
+import { Key, Link2 } from 'lucide-react'
 
 import type { SchemaTable } from '../types'
 import { TableNode, type TableNodeType } from './table-node'
@@ -108,19 +108,23 @@ export const ErdCanvas = ({ tables }: ErdCanvasProps) => {
           size={2}
           color="var(--color-edge)"
         />
-        <Controls className="!border-edge !bg-surface-2 [&>button]:!border-edge [&>button]:!bg-surface-2 [&>button]:!text-ink-faint [&>button:hover]:!text-ink-dim" />
+        <Controls
+          className="!border-edge !bg-surface-2 [&>button]:!border-edge [&>button]:!bg-surface-2 [&>button]:!text-ink-faint [&>button:hover]:!text-ink-dim"
+          orientation="vertical"
+          position="top-right"
+        />
       </ReactFlow>
 
       <div className="absolute bottom-4 left-4 z-10 flex items-center gap-4 rounded-md border border-edge bg-surface px-3.5 py-2">
-        <div className="flex items-center gap-1.5 text-[10px] text-ink-muted">
-          <Star size={10} className="text-amber" />
+        <div className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+          <Key size={12} className="text-amber" />
           Primary key
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-ink-muted">
-          <Link2 size={10} className="text-violet" />
+        <div className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+          <Link2 size={12} className="text-violet" />
           Foreign key
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-ink-muted">
+        <div className="flex items-center gap-1.5 text-[12px] text-ink-muted">
           <span className="h-0 w-6 border-t border-dashed border-accent" />
           Relationship
         </div>

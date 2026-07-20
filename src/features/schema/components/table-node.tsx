@@ -1,5 +1,5 @@
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
-import { Link2, Rows3, Star } from 'lucide-react'
+import { Key, Link2, Rows3 } from 'lucide-react'
 
 import { cn } from '@/utils/cn'
 
@@ -82,7 +82,7 @@ export const TableNode = ({ data, selected }: NodeProps<TableNodeType>) => {
             className="flex items-center gap-2 px-3.5 py-1"
           >
             {column.isPrimaryKey ? (
-              <Star size={10} className="shrink-0 text-amber" />
+              <Key size={10} className="shrink-0 text-amber" />
             ) : column.references ? (
               <Link2 size={10} className="shrink-0 text-violet" />
             ) : (

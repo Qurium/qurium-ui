@@ -80,7 +80,7 @@ export const SchemaList = ({ tables }: SchemaListProps) => {
                 {foreignKeys.map((column) => (
                   <span
                     key={column.name}
-                    className="rounded bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-blue"
+                    className="rounded bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-violet"
                   >
                     → {column.references!.table}.{column.references!.column}
                   </span>
@@ -95,7 +95,7 @@ export const SchemaList = ({ tables }: SchemaListProps) => {
                 {referencedBy.map((ref) => (
                   <span
                     key={`${ref.table}.${ref.column}`}
-                    className="rounded bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-blue"
+                    className="rounded bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-violet"
                   >
                     {ref.table}
                   </span>
@@ -106,78 +106,85 @@ export const SchemaList = ({ tables }: SchemaListProps) => {
               </span>
             </button>
 
-            {isOpen && (
-              <div className="px-6 pb-3 pl-14">
-                <div className="overflow-hidden rounded-md border border-edge-2 bg-surface-2">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr>
-                        {['COLUMN', 'TYPE', 'NULLABLE', 'KEY', 'DEFAULT'].map(
-                          (heading) => (
-                            <th
-                              key={heading}
-                              className="border-b border-edge-2 bg-surface px-3.5 py-2 text-left font-mono text-[10px] font-semibold tracking-wide text-ink-muted"
-                            >
-                              {heading}
-                            </th>
-                          ),
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {table.columns.map((column) => (
-                        <tr
-                          key={column.name}
-                          className="border-b border-[#141c26] last:border-b-0"
-                        >
-                          <td className="px-3.5 py-1.5 font-mono text-[11px] text-ink">
-                            <div className="flex items-center gap-1.5">
-                              {column.isPrimaryKey ? (
-                                <Key size={8} className="text-amber" />
-                              ) : (
-                                <span className="w-2" />
-                              )}
-                              {column.name}
-                            </div>
-                          </td>
-                          <td className="px-3.5 py-1.5 font-mono text-[11px] text-ink-faint">
-                            {column.type}
-                          </td>
-                          <td className="px-3.5 py-1.5 font-mono text-[11px] text-ink-faint">
-                            {column.nullable ? 'NULL' : 'NOT NULL'}
-                          </td>
-                          <td className="px-3.5 py-1.5 font-mono text-[10px] font-medium text-amber">
-                            {column.isPrimaryKey
-                              ? 'PK'
-                              : column.isUnique
-                                ? 'UQ'
-                                : '—'}
-                          </td>
-                          <td className="px-3.5 py-1.5 font-mono text-[11px] text-ink-muted">
-                            {column.default ?? '—'}
-                          </td>
+            <div
+              className={cn(
+                'grid transition-[grid-template-rows] duration-200 ease-out',
+                isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+              )}
+            >
+              <div className="overflow-hidden">
+                <div className="px-6 pb-3 pl-14 pt-0.5">
+                  <div className="overflow-hidden rounded-md border border-edge-2 bg-surface-2">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr>
+                          {['COLUMN', 'TYPE', 'NULLABLE', 'KEY', 'DEFAULT'].map(
+                            (heading) => (
+                              <th
+                                key={heading}
+                                className="border-b border-edge-2 bg-surface px-3.5 py-2 text-left font-mono text-[10px] font-semibold tracking-wide text-ink-muted"
+                              >
+                                {heading}
+                              </th>
+                            ),
+                          )}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {table.indices.length > 0 && (
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[10px] font-semibold tracking-wide text-ink-muted">
-                      INDICES
-                    </span>
-                    {table.indices.map((index) => (
-                      <span
-                        key={index.name}
-                        className="rounded bg-surface-3 px-2 py-0.5 font-mono text-[10px] text-ink-faint"
-                      >
-                        {index.name} ({index.columns.join(', ')})
-                      </span>
-                    ))}
+                      </thead>
+                      <tbody>
+                        {table.columns.map((column) => (
+                          <tr
+                            key={column.name}
+                            className="border-b border-[#141c26] last:border-b-0"
+                          >
+                            <td className="px-3.5 py-1.5 font-mono text-[11px] text-ink">
+                              <div className="flex items-center gap-1.5">
+                                {column.isPrimaryKey ? (
+                                  <Key size={8} className="text-amber" />
+                                ) : (
+                                  <span className="w-2" />
+                                )}
+                                {column.name}
+                              </div>
+                            </td>
+                            <td className="px-3.5 py-1.5 font-mono text-[11px] text-ink-faint">
+                              {column.type}
+                            </td>
+                            <td className="px-3.5 py-1.5 font-mono text-[11px] text-ink-faint">
+                              {column.nullable ? 'NULL' : 'NOT NULL'}
+                            </td>
+                            <td className="px-3.5 py-1.5 font-mono text-[10px] font-medium text-amber">
+                              {column.isPrimaryKey
+                                ? 'PK'
+                                : column.isUnique
+                                  ? 'UQ'
+                                  : '—'}
+                            </td>
+                            <td className="px-3.5 py-1.5 font-mono text-[11px] text-ink-muted">
+                              {column.default ?? '—'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                )}
+                  {table.indices.length > 0 && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-[10px] font-semibold tracking-wide text-ink-muted">
+                        INDICES
+                      </span>
+                      {table.indices.map((index) => (
+                        <span
+                          key={index.name}
+                          className="rounded bg-surface-3 px-2 py-0.5 font-mono text-[10px] text-ink-faint"
+                        >
+                          {index.name} ({index.columns.join(', ')})
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </div>
           </div>
         )
       })}

@@ -49,7 +49,7 @@ const SchemaRoute = () => {
         title="Schema Explorer"
         meta={<ConnectionPill name={schemaQuery.data.connectionName} />}
         left={
-          <span className="ml-1 font-mono text-[11px] text-ink-ghost">
+          <span className="ml-1 font-mono text-[11px] text-ink-faint">
             {schemaQuery.data.dialect} · {schemaQuery.data.tables.length} tables
           </span>
         }
@@ -61,7 +61,7 @@ const SchemaRoute = () => {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search tables..."
-                className="w-40 bg-transparent font-sans text-xs text-ink-dim placeholder:text-ink-muted focus:outline-none"
+                className="w-40 bg-transparent font-sans text-xs text-ink-dim placeholder:text-faint-muted focus:outline-none"
               />
             </div>
             <Link
@@ -106,24 +106,26 @@ const SchemaRoute = () => {
             <span className="rounded-full border border-accent/20 bg-accent/8 px-2.5 py-1 font-sans text-[10px] font-medium text-accent">
               All tables · {schemaQuery.data.tables.length}
             </span>
-            <span className="rounded-full border border-edge-2 px-2.5 py-1 font-sans text-[10px] font-medium text-ink-muted">
+            <span className="rounded-full border border-violet/20 bg-violet/8 px-2.5 py-1 font-sans text-[10px] font-medium text-violet">
               With relations · {withRelations}
             </span>
-            <span className="rounded-full border border-edge-2 px-2.5 py-1 font-sans text-[10px] font-medium text-ink-muted">
+            <span className="rounded-full border border-amber/20 bg-amber/8 px-2.5 py-1 font-sans text-[10px] font-medium text-amber">
               Standalone · {schemaQuery.data.tables.length - withRelations}
             </span>
           </div>
         </div>
-        <span className="font-mono text-[10px] text-ink-ghost">
-          Sort by: Name
-        </span>
       </div>
 
-      {view === 'diagram' ? (
-        <ErdCanvas tables={tables} />
-      ) : (
-        <SchemaList tables={tables} />
-      )}
+      <div
+        key={view}
+        className="animate-in fade-in flex flex-1 overflow-hidden duration-200"
+      >
+        {view === 'diagram' ? (
+          <ErdCanvas tables={tables} />
+        ) : (
+          <SchemaList tables={tables} />
+        )}
+      </div>
 
       <div className="flex h-13 flex-none items-center gap-3 border-t border-edge bg-surface px-6">
         <Plus size={16} className="text-accent" />
