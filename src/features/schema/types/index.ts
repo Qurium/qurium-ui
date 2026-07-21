@@ -27,8 +27,8 @@ export type SchemaTable = {
 }
 
 export type Schema = {
-  connectionId: string
-  connectionName: string
+  ownerId: string
+  ownerName: string
   dialect: string
   tables: SchemaTable[]
 }

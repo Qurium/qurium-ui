@@ -27,6 +27,15 @@ export const getConnections = ({
   })
 }
 
+export const getOnlineConnections = ({
+  page = 0,
+  size = DEFAULT_PAGE_SIZE,
+}: GetConnectionsParams = {}): Promise<PaginatedResponse<Connection>> => {
+  return api.get('/connections/online', {
+    params: { page, size: clampPageSize(size) },
+  })
+}
+
 export const getConnectionsQueryOptions = ({
   page = 0,
   size = DEFAULT_PAGE_SIZE,
@@ -37,8 +46,33 @@ export const getConnectionsQueryOptions = ({
   })
 }
 
+export const getOnlineConnectionsQueryOptions = ({
+  page = 0,
+  size = DEFAULT_PAGE_SIZE,
+}: GetConnectionsParams = {}) => {
+  return queryOptions({
+    queryKey: ['connections', 'online', { page, size }],
+    queryFn: () => getOnlineConnections({ page, size }),
+  })
+}
+
 type UseConnectionsOptions = GetConnectionsParams & {
   queryConfig?: QueryConfig<typeof getConnectionsQueryOptions>
+}
+
+type UseOnlineConnectionsOptions = GetConnectionsParams & {
+  queryConfig?: QueryConfig<typeof getOnlineConnectionsQueryOptions>
+}
+
+export const useOnlineConnections = ({
+  page,
+  size,
+  queryConfig,
+}: UseOnlineConnectionsOptions = {}) => {
+  return useQuery({
+    ...getOnlineConnectionsQueryOptions({ page, size }),
+    ...queryConfig,
+  })
 }
 
 export const useConnections = ({

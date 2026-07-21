@@ -415,8 +415,8 @@ export const schemaTables: SchemaTable[] = [
 ]
 
 export const schema: Schema = {
-  connectionId: '1',
-  connectionName: 'production-db',
+  ownerId: '1',
+  ownerName: 'production-db',
   dialect: 'PostgreSQL',
   tables: schemaTables,
 }

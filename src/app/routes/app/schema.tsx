@@ -3,19 +3,31 @@ import { Plus, Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Spinner } from '@/components/ui/spinner'
-import { ConnectionPill, TopBar } from '@/components/layouts/top-bar'
+import { TopBar } from '@/components/layouts/top-bar'
 import { paths } from '@/config/paths'
+import { useOnlineConnections } from '@/features/connections/api/get-connections'
+import { useUploadedFiles } from '@/features/connections/api/get-uploaded-files'
 import { useSchema } from '@/features/schema/api/get-schema'
 import { ErdCanvas } from '@/features/schema/components/erd-canvas'
+import { OwnerSelect } from '@/features/schema/components/owner-select'
 import { SchemaList } from '@/features/schema/components/schema-list'
 import { cn } from '@/utils/cn'
 
 type ViewMode = 'diagram' | 'list'
 
 const SchemaRoute = () => {
-  const schemaQuery = useSchema({
-    connectionId: '1a78401e-4a59-4f19-b011-3cdf36e1c1e6',
-  })
+  const connectionsQuery = useOnlineConnections({ size: 100 })
+  const filesQuery = useUploadedFiles({ size: 100 })
+
+  const connections = connectionsQuery.data?.content ?? []
+  const files = filesQuery.data?.content ?? []
+
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string | undefined>(
+    undefined,
+  )
+  const effectiveOwnerId = selectedOwnerId ?? connections[0]?.id ?? files[0]?.id
+
+  const schemaQuery = useSchema({ ownerId: effectiveOwnerId })
   const [view, setView] = useState<ViewMode>('diagram')
   const [search, setSearch] = useState('')
 
@@ -35,7 +47,7 @@ const SchemaRoute = () => {
       ),
   ).length
 
-  if (schemaQuery.isLoading || !schemaQuery.data || !schemaQuery.data.tables) {
+  if (connectionsQuery.isLoading || filesQuery.isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center bg-canvas">
         <Spinner />
@@ -47,11 +59,21 @@ const SchemaRoute = () => {
     <>
       <TopBar
         title="Schema Explorer"
-        meta={<ConnectionPill name={schemaQuery.data.connectionName} />}
+        meta={
+          <OwnerSelect
+            connections={connections}
+            files={files}
+            selectedId={effectiveOwnerId}
+            onSelect={setSelectedOwnerId}
+          />
+        }
         left={
-          <span className="ml-1 font-mono text-[11px] text-ink-faint">
-            {schemaQuery.data.dialect} · {schemaQuery.data.tables.length} tables
-          </span>
+          schemaQuery.data && (
+            <span className="ml-1 font-mono text-[11px] text-ink-faint">
+              {schemaQuery.data.dialect} · {schemaQuery.data.tables.length}{' '}
+              tables
+            </span>
+          )
         }
         right={
           <>
@@ -104,28 +126,43 @@ const SchemaRoute = () => {
           </div>
           <div className="flex gap-1.5">
             <span className="rounded-full border border-accent/20 bg-accent/8 px-2.5 py-1 font-sans text-[10px] font-medium text-accent">
-              All tables · {schemaQuery.data.tables.length}
+              All tables · {schemaQuery.data?.tables.length ?? 0}
             </span>
             <span className="rounded-full border border-violet/20 bg-violet/8 px-2.5 py-1 font-sans text-[10px] font-medium text-violet">
               With relations · {withRelations}
             </span>
             <span className="rounded-full border border-amber/20 bg-amber/8 px-2.5 py-1 font-sans text-[10px] font-medium text-amber">
-              Standalone · {schemaQuery.data.tables.length - withRelations}
+              Standalone ·{' '}
+              {(schemaQuery.data?.tables.length ?? 0) - withRelations}
             </span>
           </div>
         </div>
       </div>
 
-      <div
-        key={view}
-        className="animate-in fade-in flex flex-1 overflow-hidden duration-200"
-      >
-        {view === 'diagram' ? (
-          <ErdCanvas tables={tables} />
-        ) : (
-          <SchemaList tables={tables} />
-        )}
-      </div>
+      {schemaQuery.isLoading ? (
+        <div className="flex flex-1 items-center justify-center bg-canvas">
+          <Spinner />
+        </div>
+      ) : schemaQuery.data ? (
+        <div
+          key={view}
+          className="animate-in fade-in flex flex-1 overflow-hidden duration-200"
+        >
+          {view === 'diagram' ? (
+            <ErdCanvas tables={tables} />
+          ) : (
+            <SchemaList tables={tables} />
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-1 items-center justify-center bg-canvas">
+          <span className="font-mono text-xs text-ink-muted">
+            {effectiveOwnerId
+              ? 'No schema found for this source. Try introspecting first.'
+              : 'Select a source to view its schema.'}
+          </span>
+        </div>
+      )}
 
       <div className="flex h-13 flex-none items-center gap-3 border-t border-edge bg-surface px-6">
         <Plus size={16} className="text-accent" />

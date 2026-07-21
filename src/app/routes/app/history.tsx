@@ -32,7 +32,7 @@ const HistoryRoute = () => {
         right={
           <>
             {schemaQuery.data && (
-              <ConnectionPill name={schemaQuery.data.connectionName} />
+              <ConnectionPill name={schemaQuery.data.ownerName} />
             )}
             <div className="flex items-center gap-1.5 rounded-md border border-edge bg-surface-3 px-3 py-1.5">
               <Search size={13} className="text-ink-muted" />
@@ -53,7 +53,7 @@ const HistoryRoute = () => {
         {selected && (
           <HistoryDetail
             entry={selected}
-            connectionName={schemaQuery.data?.connectionName ?? ''}
+            connectionName={schemaQuery.data?.ownerName ?? ''}
           />
         )}
       </div>
