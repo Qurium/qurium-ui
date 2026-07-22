@@ -59,7 +59,7 @@ const QueryRoute = () => {
         title="Query Console"
         meta={
           schemaQuery.data && (
-            <ConnectionPill name={schemaQuery.data.connectionName} />
+            <ConnectionPill name={schemaQuery.data.ownerName} />
           )
         }
         right={
@@ -147,7 +147,7 @@ const QueryRoute = () => {
         <div className="flex flex-1 flex-col border-l border-edge bg-canvas">
           <ChatThread
             messages={messages}
-            connectionName={schemaQuery.data?.connectionName ?? 'your database'}
+            connectionName={schemaQuery.data?.ownerName ?? 'your database'}
           />
           <QueryInput onSubmit={handleAsk} disabled={askQuestion.isPending} />
         </div>

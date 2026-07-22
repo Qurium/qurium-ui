@@ -22,16 +22,16 @@ type RawTable = {
   indexes?: RawIndex[]
 }
 type RawSchemaDTO = {
-  connectionId: string
-  connectionName: string | null
+  ownerId: string
+  ownerName: string | null
   dialect: string | null
   schemaJson: RawTable[]
 }
 
 function transformSchema(raw: RawSchemaDTO): Schema {
   return {
-    connectionId: raw.connectionId,
-    connectionName: raw.connectionName ?? '',
+    ownerId: raw.ownerId,
+    ownerName: raw.ownerName ?? '',
     dialect: raw.dialect ?? '',
     tables: raw.schemaJson.map((t, i) => transformTable(t, i)),
   }
@@ -91,37 +91,32 @@ function transformTable(raw: RawTable, index: number): SchemaTable {
   }
 }
 
-export const getSchema = (connectionId: string): Promise<Schema> => {
+export const getSchema = (ownerId: string): Promise<Schema> => {
   return (
-    api.get(
-      `/connections/${connectionId}/schema`,
-    ) as unknown as Promise<RawSchemaDTO>
+    api.get(`/${ownerId}/schema`) as unknown as Promise<RawSchemaDTO>
   ).then(transformSchema)
 }
 
 export type GetSchemaParams = {
-  connectionId: string
+  ownerId: string
 }
 
-export const getSchemaQueryOptions = ({ connectionId }: GetSchemaParams) => {
+export const getSchemaQueryOptions = ({ ownerId }: GetSchemaParams) => {
   return queryOptions({
-    queryKey: ['schema', connectionId],
-    queryFn: () => getSchema(connectionId),
+    queryKey: ['schema', ownerId],
+    queryFn: () => getSchema(ownerId),
   })
 }
 
 type UseSchemaOptions = {
-  connectionId?: string
+  ownerId?: string
   queryConfig?: QueryConfig<typeof getSchemaQueryOptions>
 }
 
-export const useSchema = ({
-  queryConfig,
-  connectionId,
-}: UseSchemaOptions = {}) => {
+export const useSchema = ({ queryConfig, ownerId }: UseSchemaOptions = {}) => {
   return useQuery({
-    ...getSchemaQueryOptions({ connectionId: connectionId ?? '' }),
-    enabled: !!connectionId,
+    ...getSchemaQueryOptions({ ownerId: ownerId ?? '' }),
+    enabled: !!ownerId,
     ...queryConfig,
   })
 }
