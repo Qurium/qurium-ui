@@ -11,6 +11,8 @@ WHERE created_at >= date_trunc('month',
   now() - interval '1 month')
 AND created_at < date_trunc('month', now());`,
       result: { columns: ['order_count'], rows: [[247]], durationMs: 12 },
+      executed: true,
+      resultSnapshot: 'order_count: 247',
     },
   },
   {
@@ -35,6 +37,9 @@ LIMIT 5;`,
         ],
         durationMs: 45,
       },
+      executed: true,
+      resultSnapshot:
+        'name: Wireless Headphones, revenue: 48210; name: Standing Desk, revenue: 39875; name: Mechanical Keyboard, revenue: 27430; name: 4K Monitor, revenue: 24190; name: Ergonomic Chair, revenue: 21050',
     },
   },
   {
@@ -53,6 +58,9 @@ ORDER BY created_at DESC;`,
         ],
         durationMs: 23,
       },
+      executed: true,
+      resultSnapshot:
+        'id: a1b2, email: sam@example.com, created_at: 2026-07-03; id: c3d4, email: lee@example.com, created_at: 2026-07-02',
     },
   },
 ]
@@ -63,6 +71,8 @@ const defaultResponse: AskQuestionResponse = {
   sql: `SELECT COUNT(*) AS total
 FROM users;`,
   result: { columns: ['total'], rows: [[12847]], durationMs: 9 },
+  executed: true,
+  resultSnapshot: 'total: 12847',
 }
 
 export const answerQuestion = (question: string): AskQuestionResponse => {
