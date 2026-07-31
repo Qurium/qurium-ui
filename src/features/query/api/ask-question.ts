@@ -4,12 +4,16 @@ import { api } from '@/lib/api-client'
 
 import type { AskQuestionResponse } from '../types'
 
-export const askQuestion = (question: string): Promise<AskQuestionResponse> => {
-  return api.post('/query/ask', { question })
+export const askQuestion = ({
+  ownerId,
+  question,
+}: {
+  ownerId: string
+  question: string
+}): Promise<AskQuestionResponse> => {
+  return api.post(`/${ownerId}/query`, { question })
 }
 
 export const useAskQuestion = () => {
-  return useMutation({
-    mutationFn: askQuestion,
-  })
+  return useMutation({ mutationFn: askQuestion })
 }

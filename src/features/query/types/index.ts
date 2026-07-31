@@ -4,6 +4,8 @@ export type AskQuestionResponse = {
   explanation: string
   sql: string
   result: QueryResult
+  executed: boolean
+  resultSnapshot: string | null
 }
 
 export type ChatMessage =

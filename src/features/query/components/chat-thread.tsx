@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 
 import type { ChatMessage } from '../types'
-import { ResultTable } from './result-table'
 import { SqlBlock } from './sql-block'
 
 type ChatThreadProps = {
@@ -50,9 +49,18 @@ export const ChatThread = ({ messages, connectionName }: ChatThreadProps) => {
                 Q
               </div>
               <div className="flex gap-1">
-                <span className="size-1.5 rounded-full bg-accent opacity-60" />
-                <span className="size-1.5 rounded-full bg-accent opacity-30" />
-                <span className="size-1.5 rounded-full bg-accent opacity-15" />
+                <span
+                  className="size-1.5 animate-bounce rounded-full bg-accent"
+                  style={{ animationDelay: '0ms' }}
+                />
+                <span
+                  className="size-1.5 animate-bounce rounded-full bg-accent"
+                  style={{ animationDelay: '150ms' }}
+                />
+                <span
+                  className="size-1.5 animate-bounce rounded-full bg-accent"
+                  style={{ animationDelay: '300ms' }}
+                />
               </div>
             </div>
           )
@@ -70,10 +78,10 @@ export const ChatThread = ({ messages, connectionName }: ChatThreadProps) => {
               {message.explanation}
             </p>
             <div className="ml-7.5">
-              <SqlBlock sql={message.sql} />
-            </div>
-            <div className="ml-7.5">
-              <ResultTable result={message.result} />
+              <SqlBlock
+                sql={message.sql}
+                resultSnapshot={message.resultSnapshot}
+              />
             </div>
           </div>
         )
