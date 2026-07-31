@@ -1,4 +1,4 @@
-import { Database, History, Network, Settings, Terminal } from 'lucide-react'
+import { Database, History, Network, Terminal } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 import { paths } from '@/config/paths'
@@ -42,14 +42,6 @@ export const AppShell = ({ children }: AppShellProps) => {
           </NavLink>
         ))}
         <div className="flex-1" />
-        <button
-          type="button"
-          title="Settings"
-          aria-label="Settings"
-          className={cn(railLinkClasses, 'cursor-default opacity-50')}
-        >
-          <Settings size={20} strokeWidth={1.5} />
-        </button>
       </nav>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {children}

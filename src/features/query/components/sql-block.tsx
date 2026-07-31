@@ -110,7 +110,7 @@ export const SqlBlock = ({ sql, resultSnapshot }: SqlBlockProps) => {
               </table>
             </div>
           ) : (
-            <p className="px-3.5 py-2.5 text-xs leading-5 text-ink-dim">
+            <p className="px-3.5 py-2.5 text-xs leading-5 text-accent">
               {resultSnapshot}
             </p>
           )}
