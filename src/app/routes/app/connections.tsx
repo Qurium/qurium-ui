@@ -59,7 +59,7 @@ const ConnectionsRoute = () => {
         }
       />
 
-      <div className="flex-1 overflow-y-auto bg-canvas p-6">
+      <div className="animate-in fade-in flex-1 overflow-y-auto bg-canvas p-6 duration-200">
         {connectionsQuery.isLoading ? (
           <div className="flex justify-center py-12">
             <Spinner />

@@ -85,7 +85,7 @@ const QueryRoute = () => {
           )
         }
       />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="animate-in fade-in flex flex-1 overflow-hidden duration-200">
         <div className="flex flex-1 flex-col border-l border-edge bg-canvas">
           <ChatThread
             messages={messages}
