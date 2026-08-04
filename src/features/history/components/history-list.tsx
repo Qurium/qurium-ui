@@ -5,24 +5,32 @@ import type { HistoryEntry } from '../types'
 
 type HistoryListProps = {
   entries: HistoryEntry[]
-  selectedId?: string
-  onSelect: (id: string) => void
+  selectedIndex: number
+  onSelect: (index: number) => void
 }
 
 export const HistoryList = ({
   entries,
-  selectedId,
+  selectedIndex,
   onSelect,
 }: HistoryListProps) => {
+  if (entries.length === 0) {
+    return (
+      <div className="flex w-120 flex-none items-center justify-center border-r border-edge">
+        <p className="text-sm text-ink-muted">No queries yet</p>
+      </div>
+    )
+  }
+
   return (
     <div className="w-120 flex-none overflow-y-auto border-r border-edge">
-      {entries.map((entry) => {
-        const isSelected = entry.id === selectedId
+      {entries.map((entry, i) => {
+        const isSelected = i === selectedIndex
         return (
           <button
-            key={entry.id}
+            key={`${entry.executedAt}-${i}`}
             type="button"
-            onClick={() => onSelect(entry.id)}
+            onClick={() => onSelect(i)}
             className={cn(
               'w-full border-b border-edge px-5 py-3.5 text-left hover:bg-surface',
               isSelected
@@ -42,32 +50,35 @@ export const HistoryList = ({
               <span
                 className={cn(
                   'shrink-0 rounded px-2 py-0.5 font-mono text-[10px] font-medium',
-                  entry.status === 'success'
+                  entry.status === 'SUCCESS'
                     ? 'bg-accent/10 text-accent'
                     : 'bg-amber/10 text-amber',
                 )}
               >
-                {entry.status === 'success' ? 'SUCCESS' : 'FAILED'}
+                {entry.status}
               </span>
             </div>
             <div className="flex items-center gap-2 font-mono text-[10px] text-ink-ghost">
-              <span>{formatRelativeTime(entry.createdAt)}</span>
-              {entry.durationMs !== null && (
+              <span>{formatRelativeTime(entry.executedAt)}</span>
+              {entry.executionTimeMs !== null && (
                 <>
                   <span>·</span>
-                  <span>{entry.durationMs}ms</span>
+                  <span>{entry.executionTimeMs}ms</span>
                 </>
               )}
-              {entry.result && (
+              {entry.rowsReturned !== null && (
                 <>
                   <span>·</span>
-                  <span>{entry.result.rows.length} rows</span>
+                  <span>
+                    {entry.rowsReturned}{' '}
+                    {entry.rowsReturned === 1 ? 'row' : 'rows'}
+                  </span>
                 </>
               )}
-              {entry.errorMessage && (
+              {entry.status === 'FAILED' && entry.executionTimeMs === null && (
                 <>
                   <span>·</span>
-                  <span>{entry.errorMessage}</span>
+                  <span>failed</span>
                 </>
               )}
             </div>

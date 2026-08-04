@@ -1,21 +1,35 @@
 import { Search } from 'lucide-react'
 import { useState } from 'react'
 
-import { ConnectionPill, TopBar } from '@/components/layouts/top-bar'
+import { TopBar } from '@/components/layouts/top-bar'
 import { Spinner } from '@/components/ui/spinner'
-import { useSchema } from '@/features/schema/api/get-schema'
+import { useOnlineConnections } from '@/features/connections/api/get-connections'
+import { useUploadedFiles } from '@/features/connections/api/get-uploaded-files'
 import { useHistory } from '@/features/history/api/get-history'
 import { HistoryDetail } from '@/features/history/components/history-detail'
 import { HistoryList } from '@/features/history/components/history-list'
+import { OwnerSelect } from '@/features/schema/components/owner-select'
 
 const HistoryRoute = () => {
-  const schemaQuery = useSchema()
-  const historyQuery = useHistory()
-  const [selectedId, setSelectedId] = useState<string>()
+  const connectionsQuery = useOnlineConnections({ size: 100 })
+  const filesQuery = useUploadedFiles({ size: 100 })
 
-  const entries = historyQuery.data ?? []
-  const selected =
-    entries.find((entry) => entry.id === selectedId) ?? entries[0]
+  const connections = connectionsQuery.data?.content ?? []
+  const files = filesQuery.data?.content ?? []
+
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string | undefined>()
+  const effectiveOwnerId = selectedOwnerId ?? connections[0]?.id ?? files[0]?.id
+
+  const historyQuery = useHistory({ ownerId: effectiveOwnerId })
+  const [selectedIndex, setSelectedIndex] = useState(0)
+
+  const entries = historyQuery.data?.content ?? []
+  const selected = entries[selectedIndex] ?? entries[0]
+
+  const ownerName =
+    connections.find((c) => c.id === effectiveOwnerId)?.name ??
+    files.find((f) => f.id === effectiveOwnerId)?.name ??
+    ''
 
   if (historyQuery.isLoading) {
     return (
@@ -29,11 +43,19 @@ const HistoryRoute = () => {
     <>
       <TopBar
         title="Query History"
+        meta={
+          <OwnerSelect
+            connections={connections}
+            files={files}
+            selectedId={effectiveOwnerId}
+            onSelect={(id) => {
+              setSelectedOwnerId(id)
+              setSelectedIndex(0)
+            }}
+          />
+        }
         right={
           <>
-            {schemaQuery.data && (
-              <ConnectionPill name={schemaQuery.data.ownerName} />
-            )}
             <div className="flex items-center gap-1.5 rounded-md border border-edge bg-surface-3 px-3 py-1.5">
               <Search size={13} className="text-ink-muted" />
               <span className="font-sans text-xs text-ink-muted">
@@ -44,18 +66,13 @@ const HistoryRoute = () => {
         }
       />
 
-      <div className="flex flex-1 overflow-hidden bg-canvas">
+      <div className="animate-in fade-in flex flex-1 overflow-hidden duration-200">
         <HistoryList
           entries={entries}
-          selectedId={selected?.id}
-          onSelect={setSelectedId}
+          selectedIndex={selectedIndex}
+          onSelect={setSelectedIndex}
         />
-        {selected && (
-          <HistoryDetail
-            entry={selected}
-            connectionName={schemaQuery.data?.ownerName ?? ''}
-          />
-        )}
+        {selected && <HistoryDetail entry={selected} ownerName={ownerName} />}
       </div>
     </>
   )
